@@ -1,0 +1,371 @@
+<?php
+
+namespace App\Http\Controllers\Backend\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Backend\Career;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Str;
+use Yajra\DataTables\DataTables;
+use App\Helpers\Helper;
+use App\Models\Frontend\JobApplication;
+use Exception;
+use Illuminate\Queue\Jobs\JobName;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+
+class CareerController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        return view('backend.pages.careers.index');
+    }
+
+
+    public function getAllCareers(Request $request)
+    {
+        if ($request->ajax()) {
+
+            $careers = Career::orderby('job_title', 'asc')->get();
+
+            return DataTables::of($careers)
+
+                ->addColumn('action', function ($section) {
+                    $html = '<div class="btn-group">';
+                    $html .= '<a data-toggle="tooltip"  id="' . $section->id . '" class="btn btn-success mr-1 view" title="View"><i class="lni lni-eye"></i> </a>';
+                    $html .= '<a data-toggle="tooltip"  id="' . $section->id . '" class="btn btn-info mr-1 edit" title="Edit"><i class="lni lni-pencil-alt"></i> </a>';
+                    $html .= '<a data-toggle="tooltip"  id="' . $section->id . '" class="btn btn-danger delete" title="Delete"><i class="lni lni-trash"></i> </a>';
+                    $html .= '</div>';
+                    return $html;
+                })
+                ->rawColumns(['action'])
+                ->addIndexColumn()
+                ->make(true);
+        } else {
+            return response()->json(['status' => 'false', 'message' => "Access only ajax request"]);
+        }
+    }
+
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(Request $request)
+    {
+        if ($request->ajax()) {
+            $view = View::make('backend.pages.careers.create')->render();
+            return response()->json(['html' => $view]);
+        } else {
+            return response()->json(['status' => 'false', 'message' => "Access only ajax request"]);
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        if ($request->ajax()) {
+            $path = "careers";
+
+            $rules = [
+                'job_title' => 'required',
+            ];
+            $poster_img = '';
+
+            if ($request->hasFile('poster')) {
+                $poster = $request->file('poster');
+                $poster_img = Helper::saveImage($poster, 800, 800, $path);
+            }
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'type' => 'error',
+                    'errors' => $validator->getMessageBag()->toArray()
+                ]);
+            } else {
+
+                DB::beginTransaction();
+                try {
+                    // $client_name = Client::where('id', $request->client_id)->first();
+                    $career = new Career();
+                    $career->job_title = $request->input('job_title');
+                    $career->slug = $request->input('slug');
+                    $career->job_description = $request->input('job_description');
+                    $career->educational_requirement = $request->input('ed_requirement');
+                    $career->experience_requirement = $request->input('ex_requirement');
+                    $career->additional_requirement = $request->input('ad_requirement');
+                    $career->no_of_vacancy = $request->input('vacancy');
+                    $career->salary = $request->input('salary');
+                    $career->job_location = $request->input('location');
+                    $career->experience = $request->input('experience');
+                    $career->deadline = $request->input('deadline');
+                    $career->job_type = $request->input('job_type');
+                    $career->compensations = $request->input('compensations');
+                    $career->is_active = $request->input('is_active');
+                    if ($poster_img !== '') {
+                        $career->poster = $poster_img;
+                    }
+                    $career->save(); //
+                    DB::commit();
+                    return response()->json(['type' => 'success', 'message' => "Successfully Inserted"]);
+                } catch (Exception $e) {
+                    DB::rollback();
+                    dd($e->getMessage());
+                    return response()->json(['type' => 'error', 'message' => "Please Fill With Correct data"]);
+                }
+                // }
+            }
+        } else {
+            return response()->json(['status' => 'false', 'message' => "Access only ajax request"]);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Career $career, Request $request)
+    {
+        if ($request->ajax()) {
+            $view = View::make('backend.pages.careers.show', compact('career'))->render();
+            return response()->json(['html' => $view]);
+        } else {
+            return response()->json(['status' => 'false', 'message' => "Access only ajax request"]);
+        }
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Career $career, Request $request)
+    {
+        if ($request->ajax()) {
+            $view = View::make('backend.pages.careers.edit', compact('career'))->render();
+            return response()->json(['html' => $view]);
+        } else {
+            return response()->json(['status' => 'false', 'message' => "Access only ajax request"]);
+        }
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Career $career)
+    {
+        if ($request->ajax()) {
+            $path = "careers";
+
+            $rules = [
+                'job_title' => 'required',
+            ];
+
+            if ($request->hasFile('poster')) {
+                if (!empty($request->file('poster'))) {
+                    $poster = $request->file('poster');
+                    $poster_img = Helper::saveImage($poster, 800, 800, $path);
+                    // solve issue if file not found
+                    if (File::exists($career->poster)) {
+                        $file_old = $career->poster;
+                        unlink($file_old);
+                    }
+                }
+            } else {
+                $poster_img = $career->poster;
+            }
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'type' => 'error',
+                    'errors' => $validator->getMessageBag()->toArray()
+                ]);
+            } else {
+
+                DB::beginTransaction();
+                try {
+                    $career->job_title = $request->input('job_title');
+                    $career->slug = $request->input('slug');
+                    $career->job_description = $request->input('job_description');
+                    $career->educational_requirement = $request->input('ed_requirement');
+                    $career->experience_requirement = $request->input('ex_requirement');
+                    $career->additional_requirement = $request->input('ad_requirement');
+                    $career->no_of_vacancy = $request->input('vacancy');
+                    $career->salary = $request->input('salary');
+                    $career->job_location = $request->input('location');
+                    $career->experience = $request->input('experience');
+                    $career->deadline = $request->input('deadline');
+                    $career->job_type = $request->input('job_type');
+                    $career->compensations = $request->input('compensations');
+                    $career->is_active = $request->input('is_active');
+                    $career->poster = $poster_img;
+                    $career->save(); //
+                    DB::commit();
+                    return response()->json(['type' => 'success', 'message' => "Successfully Inserted"]);
+                } catch (Exception $e) {
+                    DB::rollback();
+                    dd($e->getMessage());
+                    return response()->json(['type' => 'error', 'message' => "Please Fill With Correct data"]);
+                }
+                // }
+            }
+        } else {
+            return response()->json(['status' => 'false', 'message' => "Access only ajax request"]);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Career $career, Request $request)
+    {
+        if ($request->ajax()) {
+            $career->delete();
+            return response()->json(['type' => 'success', 'message' => 'Successfully Deleted']);
+        } else {
+            return response()->json(['status' => 'false', 'message' => "Access only ajax request"]);
+        }
+    }
+
+
+    public function jobApplicationIndex()
+    {
+        // dd('hi fron jobapp');
+
+        return view('backend.pages.careers.job_application');
+    }
+
+    public function getallJobApplications(Request $request)
+    {
+        if ($request->ajax()) {
+
+            $jobApplications = JobApplication::orderby('created_at', 'desc')->orderBy('is_replied', 'desc')->get();
+
+            return DataTables::of($jobApplications)
+                ->addColumn('applied_for', function ($section) {
+                    $job_name  = Career::where('id', $section->job_id)->value('job_title');
+                    return $job_name;
+                })->addColumn('cv', function ($section) {
+                    $html = "<a href='#' class='cv-link' data-pdf='" . asset($section->file)  . "'>" . $section->name . " CV</a>";
+                    return $html;
+                })
+                ->addColumn('is_replied', function ($section) {
+                    $replied = $section->is_replied == 1 ? "<span class='text-success' >Replied</span>" : "<span class='text-danger' >Not Replied</span>";
+                    return $replied;
+                })
+                ->addColumn('address', function ($section) {
+                    return Str::limit($section->address, 30);
+                })
+                ->addColumn('action', function ($section) {
+                    $html = '<div class="btn-group">';
+                    if ($section->is_replied == 0) {
+                        $html .= '<a data-toggle="tooltip"  id="' . $section->id . '" class="btn btn-success mr-1 reply" title="Reply"><i class="lni lni-reply"></i> </a>';
+                    }
+                    $html .= '<a data-toggle="tooltip"  id="' . $section->id . '" class="btn btn-danger delete" title="Delete"><i class="lni lni-trash"></i> </a>';
+                    $html .= '</div>';
+                    return $html;
+                })
+                ->rawColumns(['action', 'applied_for', 'cv', 'is_replied'])
+                ->addIndexColumn()
+                ->make(true);
+        } else {
+            return response()->json(['status' => 'false', 'message' => "Access only ajax request"]);
+        }
+    }
+
+
+    public function jobApplicationReply($id)
+    {
+        $job_app = JobApplication::findOrFail($id);
+
+        if ($job_app) {
+            $view = View::make('backend.pages.careers.job_reply', compact('job_app'))->render();
+            return response()->json(['html' => $view]);
+        } else {
+            return response()->json(['status' => 'false', 'message' => "Access only ajax request"]);
+        }
+    }
+
+    public function jobApplicationDelete($id)
+    {
+        $job_app = JobApplication::findOrFail($id);
+
+        if ($job_app) {
+            DB::beginTransaction();
+            try {
+                $job_app->delete();
+                DB::commit();
+                return response()->json(['type' => 'success', 'message' => 'Successfully Deleted']);
+            } catch (Exception $e) {
+                DB::rollback();
+                return response()->json(['type' => 'error', 'message' => "Error deleting job application"]);
+            }
+        } else {
+            return response()->json(['status' => 'false', 'message' => "Access only ajax request"]);
+        }
+    }
+
+    public function jobApplicationReplyStore(Request $request)
+    {
+        if ($request->ajax()) {
+
+
+            $rules = [
+                'message' => 'required',
+                'int_date' => 'required',
+            ];
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'type' => 'error',
+                    'errors' => $validator->getMessageBag()->toArray()
+                ]);
+            } else {
+
+                DB::beginTransaction();
+                try {
+                    // $client_name = Client::where('id', $request->client_id)->first();
+                    $job_app = JobApplication::findOrFail($request->input('job_id'));
+                    // dd($job_app);
+                    $message = $request->input('message');
+                    $int_date = $request->input('int_date');
+
+
+                    $job_app->reply_message = $message;
+                    $job_app->int_date = $int_date;
+                    $job_app->is_replied = 1;
+                    $job_app->save(); //
+                    DB::commit();
+                    $data["email"] = $job_app->email;
+                    $cnd_name = $job_app->name;
+
+                    $date = Carbon::parse($int_date, 'UTC');
+                    // dd();
+                    $settings = DB::table('settings')->where('is_active', 1)->first();
+
+                    $j_title = DB::table('careers')->where('id', $job_app->job_id)->value('job_title');
+                    $data["title"] = $settings->app_name . " Career";
+                    $data["body"] = "Dear " . $cnd_name . " " . $message . " you are invited for an interview for " . $j_title . " on " . $date->isoFormat('MMM Do YYYY') . " for the " . $j_title . " post at " . $settings->app_name;
+
+                    Mail::send('backend.pages.careers.send_career_reply_mail', $data, function ($message) use ($data) {
+                        $message->to($data["email"], $data["email"])
+                            ->subject($data["title"]);
+                    });
+                    return response()->json(['type' => 'success', 'message' => "Successfully Inserted"]);
+                } catch (Exception $e) {
+                    DB::rollback();
+                    dd($e->getMessage());
+                    return response()->json(['type' => 'error', 'message' => "Please Fill With Correct data"]);
+                }
+                // }
+            }
+        } else {
+            return response()->json(['status' => 'false', 'message' => "Access only ajax request"]);
+        }
+    }
+}

@@ -1,0 +1,471 @@
+<style>
+    .form-group {
+        padding: 4px;
+    }
+</style>
+
+<form id="create" action="" enctype="multipart/form-data" method="post" accept-charset="utf-8"
+    class="needs-validation" novalidate>
+    <div class="text-danger mb-3">** <span class="fw-bold">Note: </span>There are
+        <span class="fw-bold">{{ $quote->discount_amount }} {{ $quote->currency }}</span> discount and {{ $quote->tax }}% tax = <b>{{ $quote->grand_total*($quote->tax/100) }} {{ $quote->currency }} </b> on this
+        quotation. Please adjust the amount accordingly. **</div>
+    <div id="status"></div>
+    <input type="text" class="form-control" name="quotation_id" hidden value="{{ $quote->id }}">
+    <div>
+        <div class="row">
+            <div class="form-group col-md-8">
+                <label for="">Invoice Title <span style="color: red;">*</span></label>
+                <p></p>
+                <input type="text" class="form-control" id="title" name="title" value=""
+                    placeholder="Enter a invoice title." required >
+                <span id="error_title" class="has-error text-danger"></span>
+            </div>
+            <div class="form-group col-md-4">
+                <label for="">Invoice Date <span style="color: red;">*</span></label>
+                <p></p>
+                <input type="date" class="form-control" id="date" name="invoice_date" value=""
+                    placeholder="" required>
+                <span id="error_invoice_date" class="has-error text-danger"></span>
+            </div>
+        </div>
+        <div id="items">
+            <div class="item col" style="margin-bottom: 10px;display:none;">
+                <div class="row">
+                    <div class="form-group col-md-2">
+                        <label for="">Category</label>
+                        <select class="form-control categorySelect" disabled name="work_category_id[]" id=""
+                            required>
+                            <option value="">Select Category</option>
+                            @foreach ($all_work_categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="">Item/Work</label>
+                        <select class="form-control itemSelect" name="items[]" id="" disabled>
+                            <option value="">Select Item</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="">Quantity</label>
+                        <input type="number" min="0" onkeyup="if(this.value<0){this.value= this.value * -1}"
+                            class="form-control quantity" name="quantity[]" placeholder="Quantity">
+                    </div>
+                    <div class="form-group col-md-1">
+                        <label for="">Unit</label>
+                        <input type="text" class="form-control unitSelect" id="" name="unit[]"
+                            placeholder="Unit" readonly>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="">Unit Price ({{ $quote->currency }})</label>
+                        <input type="number" min="0" onkeyup="if(this.value<0){this.value= this.value * -1}"
+                            class="form-control unitPrice" id="" name="unit_price[]" placeholder="Unit Price">
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="">Total ({{ $quote->currency }})</label>
+                        <input type="number" class="form-control totalPrice" name="total_price[]"
+                            placeholder="Total Price" readonly>
+                    </div>
+
+                    <div class="col-md-1">
+                        <br>
+                        <button type="button" class="btn btn-danger form-control removeItem">X</button>
+                    </div>
+                </div>
+                <hr>
+
+            </div>
+            @foreach ($quotation_details as $qd)
+                <div class="item col" style="margin-bottom: 10px;">
+                    <div class="row">
+                        <div class="form-group col-md-2">
+                            <label for="">Category</label>
+                            <select disabled class="form-control categorySelect" name="work_category_id[]"
+                                id="" required>
+                                <option value="">Select Category</option>
+                                @foreach ($all_work_categories as $awc)
+                                    <option @if ($qd->category_id == $awc->id) selected @endif
+                                        value="{{ $awc->id }}">{{ $awc->title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="">Item/Work</label>
+                            <select class="form-control itemSelect" name="items[]" id="" disabled>
+                                <option>Select Item</option>
+                                @foreach ($all_items as $ai)
+                                    @if ($qd->category_id == $ai->work_category_id)
+                                        <option @if ($qd->item_id == $ai->id) selected @endif
+                                            value="{{ $ai->id }}">{{ $ai->item_work }}</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="">Quantity</label>
+                            <input type="number" min="0"
+                                onkeyup="if(this.value<0){this.value= this.value * -1}" class="form-control quantity"
+                                name="quantity[]" value="{{ $qd->quantity }}" placeholder="Quantity">
+                        </div>
+                        <div class="form-group col-md-1">
+                            <label for="">Unit</label>
+                            <input type="text" class="form-control unitSelect" id="" name="unit[]"
+                                placeholder="Unit" value="{{ $qd->unit }}" readonly>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="">Unit Price ({{ $quote->currency }})</label>
+                            <input type="number" min="0"
+                                onkeyup="if(this.value<0){this.value= this.value * -1}" class="form-control unitPrice"
+                                id="" name="unit_price[]" placeholder="Unit Price"
+                                value="{{ $qd->unit_price }}">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="">Total ({{ $quote->currency }})</label>
+                            <input type="number" class="form-control totalPrice" name="total_price[]"
+                                placeholder="Total Price" readonly value="{{ $qd->total_price }}">
+                        </div>
+
+                        <div class="col-md-1">
+                            <br>
+                            <button type="button" class="btn btn-danger form-control removeItem">X</button>
+                        </div>
+                    </div>
+                    <hr>
+
+                </div>
+            @endforeach
+        </div>
+        <div class="row col-md-12 d-flex flex-row">
+            <div class="form-group col-md-4 ">
+                <label for="">Sub Total ({{ $quote->currency }})</label>
+                <input type="number" class="form-control" min="0" id="subTotal" name="sub_total" readonly
+                    placeholder="Sub Total" >
+            </div>
+            <div class="form-group col-md-4 ">
+                <label for="">Discount ({{ $quote->currency }})</label>
+                <input type="number" class="form-control" min="0" id="discount_amount" name="discount_amount" value="{{ $discount }}"
+                    placeholder="discount Amount">
+                <span class="error_msg danger"></span>
+            </div>
+            <div class="form-group col-md-4 ">
+                <label for="">Tax ({{ $quote->currency }})</label>
+                <input type="number" class="form-control" min="0" id="tax" name="tax"
+                    placeholder="Tax" value="{{ $tax }}" >
+            </div>
+        </div>
+        <div class="row col-md-12 d-flex flex-row">
+            <div class="form-group col-md-4 ">
+                <label for="">Paid Amount ({{ $quote->currency }})</label>
+                <input type="number" class="form-control" min="0" id="paid_amount" name="paid_amount"
+                    placeholder="Paid Amount">
+                <span class="error_msg danger"></span>
+            </div>
+            <div class="form-group col-md-4 ">
+                <label for="">Due ({{ $quote->currency }})</label>
+                <input type="number" class="form-control" min="0" id="due" name="due"
+                    placeholder="Due" readonly>
+            </div>
+            <div class="form-group col-md-4 ">
+                <label for="">Grand Total ({{ $quote->currency }})</label>
+                <input type="number" class="form-control" min="0" id="grandTotal" name="grand_total" readonly>
+            </div>
+        </div>
+        <div class="row col-md-12 d-flex flex-row">
+            <div class="form-group col-md-6">
+                <label for="">Payment Method</label>
+                <select name="payment_method" id="payment_method" class="form-control">
+                    <option value="" selected disabled>Select Payment Method</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Cheque">Cheque</option>
+                    <option value="Card">Card</option>
+                </select>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="">TRN <span style="color: red;">*</span></label>
+                <input type="text" class="form-control" id="trn" name="trn" placeholder="Enter TRN">
+                <span class="text-danger" id="error_trn"></span>
+            </div>
+
+        </div>
+        <br>
+        <div class="row" id="cheque_portion">
+            <div class="form-group col-md-4">
+                <label for="">Bank Name</label>
+                <input type="text" name="bank_name" id="bank_name" class="form-control"
+                    placeholder="Enter Bank Name">
+            </div>
+            <div class="form-group col-md-4">
+                <label for="">Cheque Date</label>
+                <input type="date" name="cheque_date" id="cheque_date" class="form-control">
+            </div>
+            <div class="form-group col-md-4">
+                <label for="">Cheque Number</label>
+                <input type="text" name="cheque_number" id="cheque_number" class="form-control"
+                    placeholder="Enter Cheque Number">
+            </div>
+            <br>
+        </div>
+
+
+        <div class="row">
+            <div class="form-group col-md-12">
+                <label for="">Bank Details</label>
+                <textarea class="form-control" name="bank_details" id="bank_details"></textarea>
+            </div>
+        </div>
+        <br>
+        <button class="btn btn-primary" type="button" id="addItem">Add Item</button>
+        <button class="btn btn-primary button-submit" type="submit" data-loading-text="Loading...">
+            <i class="fadeIn animated bx bx-save"></i>Generate Invoice</button>
+        <button class="btn btn-primary" type="button" id="preview">
+            <i class="fadeIn animated bx bx-save"></i>Preview</button>
+    </div>
+</form>
+<script>
+    $('#create').on('submit', function(e) {
+        e.preventDefault();
+        $('.categorySelect').prop('disabled', false);
+        $('.itemSelect').prop('disabled', false);
+        var myData = new FormData($("#create")[0]);
+        myData.append('_token', CSRF_TOKEN);
+
+        swal({
+            title: "Are you sure to submit?",
+            text: "Submit Form",
+            type: "warning",
+            showCancelButton: true,
+            closeOnConfirm: false,
+            showLoaderOnConfirm: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Yes, Submit!"
+        }, function() {
+            // console.log('hi');
+            $.ajax({
+                url: '/admin/request/for/invoice/store',
+                type: 'POST',
+                data: myData,
+                dataType: 'json',
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function(data) {
+                    if (data.type === 'success') {
+                        // $('#myModal').modal('hide');
+                        swal("Done!", "It was succesfully done!", "success");
+                        // reload_table();
+                        location.reload();
+                    } else if (data.type === 'error') {
+                        if (data.errors) {
+                            $.each(data.errors, function(key, val) {
+                                $('#error_' + key).html(val);
+                            });
+                        }
+                        $("#status").html(data.message);
+                        swal("Error sending!", "Please fix the errors", "error");
+                    }
+                }
+            });
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        // Initial calculations
+        updateSubTotal();
+        calculateDue();
+
+        // Remove item event handler
+        $('.removeItem').on('click', function() {
+            $(this).closest('.item').remove();
+            updateSubTotal();
+            calculateDue();
+        });
+
+        // Payment method selection handling
+        $("#cheque_portion").hide();
+        $("#payment_method").change(function() {
+            var value = $("#payment_method").val();
+            if (value == 'Cheque') {
+                $("#cheque_portion").show();
+            } else {
+                $("#cheque_portion").hide();
+            }
+        });
+
+        $('#preview').on('click', function() {
+            $('.categorySelect').prop('disabled', false);
+            $('.itemSelect').prop('disabled', false);
+            var formData = $("#create").serialize();
+            $.ajax({
+                type: 'GET',
+                url: '/admin/invoice/preview',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                success: function(data) {
+                    console.log(data.data);
+                    $("#quotation_data").html(data.html);
+                    // jQuery.noConflict();
+                    $('#previewModal').modal('show'); // show bootstrap modal
+                    $('.quotation-title').text('Invoice');
+                },
+                error: function(result) {
+                    $("#modal_data").html("Sorry Cannot Load Data");
+                }
+            });
+        });
+
+       // Event handler for the "Add Item" button
+       $('#addItem').on('click', function() {
+            var newItem = $('#items .item:first').clone(); // Clone the first item
+            newItem.show();
+            newItem.find('input').val(''); // Clear input values in the cloned item
+            newItem.find('.removeItem').show(); // Show remove button for the cloned item
+            $('#items').append(newItem); // Append the cloned item to the items container
+            initializeItem(newItem); // Initialize event handlers for the new item
+
+            // Enable the cloned item's category dropdown
+            newItem.find('.categorySelect').prop('disabled', false);
+            // Disable the cloned item's item dropdown initially
+            newItem.find('.itemSelect').prop('disabled', false);
+        });
+
+        // Initialize event handlers for existing items
+        initializeItem($('#items .item:first'));
+
+        // Update total price when quantity or unit price changes
+        $('#items').on('input', '.quantity, .unitPrice', function() {
+            updateTotalPrice($(this).closest('.item'));
+            updateSubTotal(); // Update subtotal whenever an item changes
+            calculateDue();
+        });
+
+
+        // Event handler for tax, discount, and paid amount
+        $('#tax, #discount_amount, #paid_amount').on('input', function() {
+            updateSubTotal();
+            calculateDue();
+        });
+
+        // Function to update the total price of individual items
+        function updateTotalPrice(item) {
+            var quantity = parseFloat(item.find('.quantity').val()) || 0;
+            var unitPrice = parseFloat(item.find('.unitPrice').val()) || 0;
+            var totalPrice = quantity * unitPrice;
+            item.find('.totalPrice').val(totalPrice.toFixed(2));
+        }
+
+        // Function to update the subtotal, grand total, and handle warnings
+        function updateSubTotal() {
+            var subTotal = 0;
+            $('.totalPrice').each(function() {
+                subTotal += parseFloat($(this).val()) || 0;
+            });
+
+            $('#subTotal').val(subTotal.toFixed(2)); // Update subtotal
+
+            // Get tax, discount, and calculate grand total
+            var tax = parseFloat($('#tax').val()) || 0;
+            var discount = parseFloat($('#discount_amount').val()) || 0;
+            var grandTotal = (subTotal + tax) - discount;
+
+            // Ensure grand total is not negative
+            if (grandTotal >= 0) {
+                $('#grandTotal').val(grandTotal.toFixed(2));
+            } else {
+                swal({
+                    title: "Warning!",
+                    text: "Discount cannot be greater than (subtotal + tax)!",
+                    type: "warning",
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "ok"
+                }, function() {
+                    $('#discount_amount').val(0); // Reset discount if invalid
+                    updateSubTotal();
+                });
+            }
+        }
+
+        // Function to calculate the due amount based on grand total and paid amount
+        function calculateDue() {
+            var grandTotal = parseFloat($('#grandTotal').val()) || 0;
+            var paidAmount = parseFloat($('#paid_amount').val()) || 0;
+            var due = grandTotal - paidAmount;
+
+            // Ensure paid amount is not greater than grand total
+            if (paidAmount > grandTotal) {
+                swal({
+                    title: "Warning!",
+                    text: "Paid amount cannot be greater than grand total!",
+                    type: "warning",
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "ok"
+                }, function() {
+                    $('#paid_amount').val(0); // Reset paid amount if invalid
+                    calculateDue();
+                });
+            } else {
+                $('#due').val(due.toFixed(2)); // Update due field
+            }
+        }
+
+        // Function to initialize event handlers for items (used for adding new items)
+        function initializeItem(item) {
+            item.find('.quantity, .unitPrice').on('change', updateTotalPrice);
+            item.find('.removeItem').on('click', function() {
+                $(this).closest('.item').remove();
+                updateSubTotal();
+            });
+        }
+
+        // Handle category and item dropdown changes
+        $('#items').on('change', '.categorySelect', function() {
+            var categoryId = $(this).val();
+            var itemSelect = $(this).closest('.item').find('.itemSelect');
+            var unitInput = $(this).closest('.item').find('.unitSelect');
+            var unitPriceInput = $(this).closest('.item').find('.unitPrice');
+            itemSelect.prop('disabled', false);
+
+            // Fetch items via AJAX based on selected category
+            $.ajax({
+                url: 'request/for/quotation/fetch-items/' + categoryId,
+                type: 'GET',
+                success: function(data) {
+                    itemSelect.empty();
+                    itemSelect.append('<option>Select Item</option>')
+                    if (data.items && data.items.length > 0) {
+                        $.each(data.items, function(index, item) {
+                            itemSelect.append('<option value="' + item.id +
+                                '" data-unit="' + item.unit.title +
+                                '" data-unit-price="' + item.unit_price + '">' +
+                                item.item_work + '</option>');
+                        });
+                        var selectedItem = itemSelect.find(':selected');
+                        unitInput.val(selectedItem.data('unit'));
+                        unitPriceInput.val(selectedItem.data('unit-price'));
+                    } else {
+                        itemSelect.append('<option value="">No items found</option>');
+                        unitInput.val('');
+                        unitPriceInput.val('');
+                    }
+                },
+                error: function(error) {
+                    console.error(error);
+                }
+            });
+        });
+
+        // Handle item dropdown changes
+        $('#items').on('change', '.itemSelect', function() {
+            var selectedItem = $(this).find(':selected');
+            var unit = selectedItem.data('unit');
+            var unitPrice = selectedItem.data('unit-price');
+            $(this).closest('.item').find('.unitSelect').val(unit);
+            $(this).closest('.item').find('.unitPrice').val(unitPrice);
+        });
+    });
+</script>
+
+

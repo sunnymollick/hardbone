@@ -1,0 +1,226 @@
+@extends('frontend.layouts.defaults')
+@section('title')
+    Our Team
+@endsection
+@section('page_header')
+    <!-- Page Header -->
+    <div class="page_header">
+        <div class="page_header_content">
+            <div class="container">
+                <ul class="breadcrumb">
+                    <li><a href="{{ url('/') }}">Home</a></li>
+                    <li class="active">Our Team</li>
+                </ul>
+                <h2 class="heading">Introducing with our Team</h2>
+            </div>
+        </div>
+    </div>
+@endsection
+@section('content')
+    <div class="section team">
+        <div class="container">
+            <div class="row">
+                @foreach ($teams as $team)
+                    <div class="col-lg-4 col-md-6 col-sm-12">
+                        <div class="team_construction">
+                            <figure class="team_construction_inner">
+                                <a data-toggle="modal" data-target="#exampleModalCenter">
+                                    <img class="team_image" src="{{ asset($team->image) }}" alt="{{ $team->name }}"
+                                        loading="lazy">
+                                </a>
+                                <div class="team-box__info">
+                                    <a href="" class="name h5">{{ $team->name }}</a>
+                                    <p class="position">{{ $team->designation }}</p>
+                                </div>
+                            </figure>
+                            <div class="team_hover_content">
+                                <ul class="speakers-social-lists-simple">
+                                    <li>
+                                        <a href="{{ $team->fb_link }}" class="fa fa-facebook-square"></a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ $team->x_link }}" class="fa fa-twitter"></a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ $team->linkedin_link }}" class="fa fa-linkedin"></a>
+                                    </li>
+                                    <li>
+                                </ul>
+                                <h2 class="speaker-title-simple">
+                                    <button type="button" value="{{ $team->id }}"
+                                        class="btn btn-primary py-3 px-4 modData"
+                                        id="modalView"
+                                        data-toggle="modal"
+                                        data-target="#exampleModalCenter"
+                                        data-img="{{ $team->image }} "
+                                        data-name="{{ $team->name }}"
+                                        data-designation="{{ $team->designation }}"
+                                        data-email="{{ $team->email }}"
+                                        data-phone="{{ $team->phone }}"
+                                        data-fb="{{ $team->fb_link }}"
+                                        data-xlink="{{ $team->x_link }}"
+                                        data-linkedin="{{ $team->linkedin_link }}"
+                                        data-description="{{ $team->description }}">
+                                        {{ $team->name }}
+                                    </button>
+                                </h2>
+                                <p>{{ $team->designation }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+
+                <div class="pagination-div">
+                    <ul class="pagination">
+
+                        @if ($teams->onFirstPage())
+                            <li class="disabled"><span>&laquo;</span></li>
+                        @else
+                            <li><a href="{{ $teams->previousPageUrl() }}" rel="prev">&laquo;</a></li>
+                        @endif
+
+                        @for ($i = 1; $i <= $teams->lastPage(); $i++)
+                            @if ($i == $teams->currentPage())
+                                <li><span class="page-number current">{{ $i }}</span></li>
+                            @else
+                                <li><a href="{{ $teams->url($i) }}" class="page-number">{{ $i }}</a></li>
+                            @endif
+                        @endfor
+
+                        @if ($teams->hasMorePages())
+                            <li><a href="{{ $teams->nextPageUrl() }}" rel="next">&raquo;</a></li>
+                        @else
+                            <li class="disabled"><span>&raquo;</span></li>
+                        @endif
+
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Team Member</h5>
+                    <button type="button" class="btn btn-light close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="avatar">
+                        <img src="" alt="">
+                    </div>
+
+                    <div class="name-designation">
+                        <h3 class="name" style="color: black;">Name</h3>
+                        <p class="designation" style="color: black;">Designation</p>
+                        <p class="description" style="color: black;">Description</p>
+                    </div>
+
+                    <div class="social">
+                        <ul class="social-address-list">
+                            <li class="fb-link social-item"><a href=""><span class="fa fa-facebook-square"> Facebook
+                                    </span></a></li>
+                            <li class="x-link social-item"><a href=""><span class="fa fa-twitter"> X
+                                    </span></a></li>
+                        </ul>
+                        <ul class="social-address-list">
+                            <li class="linkedin-link social-item"><a href=""><span class="fa fa-linkedin"> LinkedIn
+                                    </span></a></li>
+                            <li class="social-item"><a href=""><span class="fa fa-envelope con-email"> Email
+                                    </span></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+
+<style>
+    .modal-header {
+
+        background-color: #00234b;
+    }
+
+    .modal-body {
+        background-color: #002a5c;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .modal-body .avatar {
+        height: 280px;
+        width: 280px;
+        overflow-y: clip;
+        overflow-x: clip;
+        border-radius: 50%;
+        border: 4px solid #ffa903;
+        box-shadow: 0px 0px 6px rgba(0, 0, 0, 2.2);
+
+    }
+
+    .modal-body .avatar img {
+        width: 280px;
+        height: auto;
+        object-fit: cover;
+    }
+
+    .modal-body .name-designation {
+        padding: 5px 20px;
+        border-radius: 5px;
+        background-color: #979A9F;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: #ffffff;
+    }
+
+    .modal-body .social {
+        display: flex;
+    }
+
+    .modal-body .social ul {
+        list-style: none;
+    }
+
+    .modal-body .social-item span {
+        padding: 0 8px
+    }
+
+    .contact-address-list a {
+        pointer-events: none;
+    }
+</style>
+
+@section('scripts')
+    <script>
+        $(document).ready(function() {
+
+            $('.modData').click(function(e) {
+                e.preventDefault();
+                // console.log($(this).data('img'));return;
+                // $('.modal-body img').attr('src', $(this).data('img'));
+                $('.modal-body .avatar img').attr('src', $(this).data('img'));
+                $('.modal-body .name').html($(this).data('name'));
+                $('.modal-body .designation').html($(this).data('designation'));
+                $('.modal-body .description').html($(this).data('description'));
+                $('.modal-body .fb-link a').attr('href', $(this).data('fb'));
+                $('.modal-body .x-link a').attr('href', $(this).data('xlink'));
+                $('.modal-body .linkedin-link a').attr('href', $(this).data('linkedin'));
+                $('.modal-body .con-email').html(' ' + $(this).data('email'))
+
+                // $('.modal-body .avatar').css({'background-image':'url("'+$(this).data('img')+'")'})
+            });
+        });
+    </script>
+@endsection
