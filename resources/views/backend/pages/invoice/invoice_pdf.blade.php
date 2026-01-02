@@ -165,6 +165,10 @@
         </tr>
     </table>
 
+    <table>
+        
+    </table>
+
     <br>
     <br>
     <h3 style="text-align:center;text-weight:bold;">Invoice Title : {{ $inv_data->title }}</h3>

@@ -62,7 +62,7 @@ class InvoiceController extends Controller
                 'unit_price' => 'required',
                 'quantity' => 'required',
                 // 'payment_method' => 'required',
-                // 'trn' => 'required',
+                'trn' => 'required',
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -119,6 +119,8 @@ class InvoiceController extends Controller
                     $invoice->paid_amount = $paidAmount;
                     $invoice->bank_details = $bank_details;
                     $invoice->trn = $trn;
+                    
+                    
 
                     $subTotal = 0;
                     for ($i = 0; $i < count($totalPrices); $i++) {
@@ -169,6 +171,10 @@ class InvoiceController extends Controller
                     $groupedDetails = $inv_data->invoiceDetails->groupBy('category_id');
                     $client_id = QuotationApplication::where('id', $quotation_id)->value('client_id');
                     $client_details = Client::where('id', $client_id)->first();
+
+                   
+                    $client_details->trn = $trn;
+                    $client_details->save();
 
                     $currency = QuotationApplication::where('id', $quotation_id)->value('currency');
 
@@ -253,6 +259,10 @@ class InvoiceController extends Controller
             $invoice_discount = Invoice::where('quotation_id',$id)->sum('discount_amount');
             $invoice_tax = Invoice::where('quotation_id',$id)->sum('tax');
 
+            $client_details = Client::where('id', $quote->client_id)->first();
+
+            $trn_number = $client_details->trn;
+
             $discount = $quote->discount_amount - $invoice_discount;
             $tax = ($quote->grand_total * ($quote->tax / 100)) - $invoice_tax;
 
@@ -288,7 +298,7 @@ class InvoiceController extends Controller
             } catch (Exception $exception) {
             }
 
-            $view = View::make('backend.pages.invoice.invoice_form', compact('quote', 'quotation_details', 'all_items', 'all_work_categories', 'all_units','discount','tax'))->render();
+            $view = View::make('backend.pages.invoice.invoice_form', compact('quote', 'quotation_details', 'all_items', 'all_work_categories', 'all_units','discount','tax','trn_number'))->render();
             return response()->json(['html' => $view]);
         } else {
             return response()->json(['status' => 'false', 'message' => "Access only ajax request"]);

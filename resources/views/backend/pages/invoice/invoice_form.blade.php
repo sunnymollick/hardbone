@@ -183,7 +183,7 @@
             </div>
             <div class="form-group col-md-6">
                 <label for="">TRN <span style="color: red;">*</span></label>
-                <input type="text" class="form-control" id="trn" name="trn" placeholder="Enter TRN">
+                <input type="text" class="form-control" id="trn" name="trn" placeholder="Enter TRN" value="{{ $trn_number ?? '' }}" required>
                 <span class="text-danger" id="error_trn"></span>
             </div>
 
@@ -430,7 +430,7 @@
 
             // Fetch items via AJAX based on selected category
             $.ajax({
-                url: 'request/for/quotation/fetch-items/' + categoryId,
+                url: '/admin/request/for/quotation/fetch-items/' + categoryId,
                 type: 'GET',
                 success: function(data) {
                     itemSelect.empty();
