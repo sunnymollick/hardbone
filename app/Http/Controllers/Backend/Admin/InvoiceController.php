@@ -132,8 +132,10 @@ class InvoiceController extends Controller
                     $invoice->tax = $tax;
                     $invoice->save();
 
+                    $invoice_id = $invoice->id;
+
                     foreach ($items as $key => $value) {
-                        $invoice_id = Invoice::orderBy('id', 'desc')->first()->id;
+                        // $invoice_id = Invoice::orderBy('id', 'desc')->first()->id;
                         $invoiceDetails = new InvoiceDetails();
                         $invoiceDetails->invoice_id = $invoice_id;
                         $invoiceDetails->category_id = $cateogry[$key];
@@ -165,8 +167,11 @@ class InvoiceController extends Controller
 
                     $company_details = Setting::where('is_active',1)->first();
                     $inv_data = Invoice::with('invoiceDetails')
-                        ->where('quotation_id', $quotation_id)
+                        ->where('id', $invoice_id)
                         ->first();
+                    // $inv_data = Invoice::with('invoiceDetails')
+                    //     ->where('quotation_id', $quotation_id)
+                    //     ->first();
 
                     $groupedDetails = $inv_data->invoiceDetails->groupBy('category_id');
                     $client_id = QuotationApplication::where('id', $quotation_id)->value('client_id');
@@ -179,7 +184,7 @@ class InvoiceController extends Controller
                     $currency = QuotationApplication::where('id', $quotation_id)->value('currency');
 
 
-                    $pdf = Pdf::loadView('backend.pages.invoice.invoice_pdf', compact('inv_data', 'groupedDetails', 'subTotal', 'company_details', 'client_details', 'payment_method','due','currency'))->setPaper('letter', 'portrait');
+                    $pdf = Pdf::loadView('backend.pages.invoice.invoice_pdf', compact('inv_data', 'groupedDetails', 'subTotal','grand_total','invoice_date','discount_amount','tax','company_details', 'client_details', 'payment_method','due','currency'))->setPaper('letter', 'portrait');
 
 
                     $data["email"] = $client_details->email;
@@ -192,10 +197,16 @@ class InvoiceController extends Controller
                             ->attachData($pdf->output(), "Invoice.pdf");
                     });
                     DB::commit();
-                    return response()->json(['type' => 'success', 'message' => "Successfully Inserted"]);
+                    // return response()->json(['type' => 'success', 'message' => "Successfully Inserted"]);
+                    return response()->json([
+                'type' => 'success', 
+                'message' => "Successfully Inserted",
+                'invoice_id' => $invoice_id  
+            ]);
                 } catch (Exception $e) {
                     DB::rollback();
-                    dd($e->getMessage());
+                    // dd($e->getMessage());
+                    Log::error('Invoice creation error: ' . $e->getMessage());
                     return response()->json(['type' => 'error', 'message' => "Please Fill With Correct data"]);
                 }
             }

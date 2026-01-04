@@ -78,6 +78,8 @@
 </head>
 
 <body>
+    
+     
     <table class="top-table">
         <tr>
             <td align="left">
@@ -140,10 +142,10 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td valign='top' style='background-color:yellowgreen'><b>Quotation Date: </b>
+                                    <td valign='top' style='background-color:yellowgreen'><b>Invoice Date: </b>
                                     </td>
                                     <td valign='top' style='background-color:blanchedalmond'>
-                                        {{ $inv_data->created_at->format('d/m/Y') }}
+                                        {{ $invoice_date }}
 
                                     </td>
                                 </tr>
@@ -165,8 +167,35 @@
         </tr>
     </table>
 
-    <table>
-        
+    <table width="auto" border="1">
+        <tr>
+            <td bgcolor="yellowgreen">Bill To</td>
+        </tr>
+        <tr>
+            <td>
+                {{ $client_details->organization_name ?? 'N/A' }}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                {{ $client_details->address ?? 'N/A'  }}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                {{ $client_details->email ?? 'N/A'  }}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                {{ $client_details->phone ?? 'N/A'  }}
+            </td>
+        </tr>
+        <tr>
+            <td>
+                TRN : {{ $client_details->trn_number ?? 'N/A'  }}
+            </td>
+        </tr>
     </table>
 
     <br>
@@ -215,9 +244,36 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                <td style='font-size:14px;;'>Grand Total</td>
+                <td style='font-size:14px;;'>Sub Total</td>
 
                 <td style='font-size:14px;; color:tomato; text-align:right; padding-right:5px'>{{ $currency }} {{ $subTotal }}
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td style='font-size:14px;;'>Discount (-)</td>
+
+                <td style='font-size:14px;; color:tomato; text-align:right; padding-right:5px'>{{ $currency }} {{ $discount_amount }}
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td style='font-size:14px;;'>Tax (+)</td>
+
+                <td style='font-size:14px;; color:tomato; text-align:right; padding-right:5px'>{{ $currency }} {{ $tax }}
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td style='font-size:14px;;'>Grand Total</td>
+
+                <td style='font-size:14px;; color:tomato; text-align:right; padding-right:5px'>{{ $currency }} {{ $grand_total }}
                 </td>
             </tr>
             <tr>
