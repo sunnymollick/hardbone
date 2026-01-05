@@ -43,6 +43,13 @@
             <span id="error_title" class="has-error"></span>
         </div>
         <div class="clearfix"></div>
+        <div class="form-group col-md-12 col-sm-12">
+            <label for="">TRN <span style="color: red;">*</span></label>
+            <input type="text" class="form-control" id="trn" name="trn" value="{{ $client->trn }}"
+                   placeholder="" required>
+            <span id="error_title" class="has-error"></span>
+        </div>
+        <div class="clearfix"></div>
         <br>
 
         <div class="d-grid gap-2">

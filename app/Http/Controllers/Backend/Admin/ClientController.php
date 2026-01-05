@@ -99,6 +99,7 @@ class ClientController extends Controller
                     $client->client_code = $client_code;
                     $client->organization_name = $request->input('organization_name');
                     $client->address = $request->input('address');
+                    $client->trn = $request->input('trn');
                     $client->email = $request->input('email');
                     $client->phone = $request->input('phone');
                     $client->save(); //
@@ -168,6 +169,7 @@ class ClientController extends Controller
                     $client->address = $request->input('address');
                     $client->email = $request->input('email');
                     $client->phone = $request->input('phone');
+                    $client->trn = $request->input('trn');
                     $client->save();
                     DB::commit();
                     return response()->json(['type' => 'success', 'message' => "Successfully Updated"]);

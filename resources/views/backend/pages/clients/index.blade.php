@@ -32,6 +32,7 @@ Clients
                             <th>Organization Name</th>
                             <th>Address</th>
                             <th>Phone</th>
+                            <th>TRN</th>
                             <th>Action </th>
                         </tr>
                         </thead>
@@ -56,6 +57,7 @@ Clients
                 {data: 'organization_name', name: 'organization_name'},
                 {data: 'address', name: 'address'},
                 {data: 'phone', name: 'phone'},
+                {data: 'trn', name: 'trn'},
                 {data: 'action', name: 'action'},
             ],
             "columnDefs": [
